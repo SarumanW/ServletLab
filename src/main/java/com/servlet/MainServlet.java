@@ -1,17 +1,21 @@
 package com.servlet;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.servlet.entity.ChangeViewModel;
 import com.servlet.entity.Product;
 import com.servlet.machinestate.MachineContext;
+import org.apache.commons.lang3.EnumUtils;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import java.lang.reflect.Type;
+import java.util.*;
 
 @WebServlet("/machine")
 public class MainServlet extends HttpServlet {
@@ -29,31 +33,52 @@ public class MainServlet extends HttpServlet {
             throws ServletException, IOException {
         List<Product> listOfProducts = MachineContext.getListOfProducts();
         req.setAttribute("products", listOfProducts);
+
+        String change = req.getParameter("param");
+
+        if(change != null) {
+            Type listType = new TypeToken<List<ChangeViewModel>>() {}.getType();
+            Object changeViewModelList = gson.fromJson(change, listType);
+
+            req.setAttribute("change", changeViewModelList);
+        }
+
         req.getRequestDispatcher("mypage.jsp").forward(req, resp);
     }
 
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (request.getParameter("productNumber") != null) {
-            String productNumber = request.getParameter("productNumber");
-            HashMap<String, Object> responseObject =
-                    this.machineContext.dispenseProduct(Integer.valueOf(productNumber));
+        String productNumber = request.getParameter("productNumber");
 
-            String responseString = this.gson.toJson(responseObject);
-
+        if (request.getParameterMap().containsKey("productNumber")) {
+            Map<String, Object> responseObject;
             response.setContentType("text/json");
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(responseString);
 
-        } else {
+            if(productNumber == null || productNumber.isEmpty()) {
+                responseObject = new HashMap<>();
+                responseObject.put("success", false);
+                responseObject.put("message", "Product number is empty!");
+                response.getWriter().write(this.gson.toJson(responseObject));
+                return;
+            }
+
+            responseObject = this.machineContext.dispenseProduct(Integer.valueOf(productNumber));
+
+            List<ChangeViewModel> change = new ArrayList<>();
+            change.add(new ChangeViewModel("dollar", "0.5"));
+            responseObject.put("change", change);
+
+            response.getWriter().write(this.gson.toJson(responseObject));
+
+        } else if (request.getParameterMap().containsKey("nominal")) {
             String nominal = request.getParameter("nominal");
             String amount = this.machineContext.insertMoney(nominal);
 
             response.setContentType("text/plain");
             response.getWriter().write(amount);
         }
-
     }
 
 }

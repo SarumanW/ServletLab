@@ -14,6 +14,7 @@
 <div class="container pt-5">
     <div class="row">
         <div class="col-md-6">
+            <h3>Products:</h3>
             <c:if test="${not empty products}">
                 <table class="table table-striped">
                     <thead>
@@ -67,18 +68,16 @@
                 </div>
             </form>
 
-            <c:if test="${not empty message}">
-                <div class="alert alert-danger alert-message">
-                        ${message}
-                </div>
-            </c:if>
+
+            <div class="alert alert-danger alert-message d-none"></div>
+
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-6 change">
             <c:if test="${not empty change}">
-                <h2>Your change:</h2>
+                <h3>Your change:</h3>
                 <table class="table table-striped">
                     <thead>
                     <tr>

@@ -25,11 +25,25 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (!response.success) {
-                    $('.alert-message').text(response.message);
+                    var message = $('.alert-message');
+                    $(message).text(response.message);
+                    $(message).removeClass('d-none');
+                    $(message).show();
                 } else {
-                    window.location.href = window.location.href + "?change=" + response.change;
+                    var param = JSON.stringify(response.change);
+                    window.location = "http://localhost:8082/machine?param=" + encodeURIComponent(param);
                 }
             }
         });
+    });
+
+    $('#reset').click(function () {
+        $('#productNumber').val('');
+        $('#balance').val('0.00');
+        $('.change').hide();
+        $('.alert-message').hide();
+
+        //TODO:change state of machine to nomoney
+        //TODO:clear change and reset everything if page is reloaded
     });
 });
