@@ -75,8 +75,10 @@ public class MainServlet extends HttpServlet {
             response.setContentType("text/plain");
             response.getWriter().write(amount);
         } else if (request.getParameterMap().containsKey("reset")) {
-            HashMap<String, Object> responseObject = this.machineContext.reset();
+            response.setContentType("text/json");
+            response.setCharacterEncoding("UTF-8");
 
+            HashMap<String, Object> responseObject = this.machineContext.reset();
             response.getWriter().write(this.gson.toJson(responseObject));
         }
     }

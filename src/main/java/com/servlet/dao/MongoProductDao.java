@@ -1,44 +1,62 @@
 package com.servlet.dao;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 import com.servlet.entity.Product;
+import org.bson.Document;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mongodb.client.model.Filters.eq;
+
 public class MongoProductDao implements ProductDao {
 
-    private List<Product> products = new ArrayList<>();
+    private MongoCollection<Document> products;
 
     public MongoProductDao() {
-        products.add(new Product(1, new BigDecimal(5.5), 5, "Milkslice"));
-        products.add(new Product(2, new BigDecimal(2), 5, "Roshen"));
-        products.add(new Product(3, new BigDecimal(1), 5, "Kinder"));
-        products.add(new Product(4, new BigDecimal(3), 5, "Milka"));
-        products.add(new Product(5, new BigDecimal(2.25), 6, "Korona"));
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+        MongoDatabase database = mongoClient.getDatabase("vendingmachine");
+        products = database.getCollection("products");
     }
+
     @Override
     public Product getProductById(int productNumber) {
-        for(Product p : products){
-            if(p.getProductNumber() == productNumber) {
-                return p;
-            }
-        }
-
-        return null;
+        Document product = this.products.find(eq("number", (double) productNumber)).first();
+        return this.convertDocumentToProduct(product);
     }
 
     @Override
     public void updateProductQuantity(int productNumber, int quantity) {
-        for(Product p : products){
-            if(p.getProductNumber() == productNumber) {
-                p.setQuantity(quantity);
-            }
-        }
+        this.products.updateOne(eq("number", productNumber), new Document("$set", new Document("quantity", (double) quantity)));
     }
 
     @Override
     public List<Product> getAllProducts() {
-        return products;
+        List<Product> productList = new ArrayList<>();
+
+        try (MongoCursor<Document> cursor = this.products.find().iterator()) {
+            while (cursor.hasNext()) {
+                Document next = cursor.next();
+
+                productList.add(this.convertDocumentToProduct(next));
+            }
+        }
+
+        return productList;
+    }
+
+    private Product convertDocumentToProduct(Document next) {
+        Product product = new Product();
+
+        product.setQuantity((next.getDouble("quantity").intValue()));
+        product.setName(next.getString("name"));
+        product.setProductNumber(next.getDouble("number").intValue());
+        product.setPrice(BigDecimal.valueOf(next.getDouble("price")));
+
+        return product;
     }
 }
