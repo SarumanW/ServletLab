@@ -43,7 +43,18 @@ $(document).ready(function () {
         $('.change').hide();
         $('.alert-message').hide();
 
-        //TODO:change state of machine to nomoney
-        //TODO:clear change and reset everything if page is reloaded
+        $.ajax({
+            url: 'machine',
+            method: 'POST',
+            data: {
+                reset: true
+            },
+            success: function (response) {
+                if(response.change !== undefined) {
+                    var param = JSON.stringify(response.change);
+                    window.location = "http://localhost:8082/machine?param=" + encodeURIComponent(param);
+                }
+            }
+        });
     });
 });

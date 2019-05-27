@@ -24,4 +24,11 @@ public class NoMoneyState implements MachineState {
         response.put("message", "You did not input money. Please try again.");
         return response;
     }
+
+    @Override
+    public HashMap<String, Object> reset() {
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        return response;
+    }
 }

@@ -39,4 +39,22 @@ public class HasMoneyState implements MachineState {
 
         return response;
     }
+
+    @Override
+    public HashMap<String, Object> reset() {
+        HashMap<String, Object> response = new HashMap<>();
+
+        try {
+            this.machineService.returnChangeWithoutPurchase();
+        } catch (NotSufficientChangeException ex) {
+            response.put("success", false);
+            response.put("message", ex.getMessage());
+        } catch (ChangeAvailableException ex) {
+            response.put("success", true);
+            response.put("change", ex.getChange());
+            response.put("message", ex.getMessage());
+        }
+
+        return response;
+    }
 }

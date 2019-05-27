@@ -2,6 +2,7 @@ package com.servlet.service;
 
 import com.servlet.dao.MongoProductDao;
 import com.servlet.dao.ProductDao;
+import com.servlet.entity.ChangeViewModel;
 import com.servlet.entity.Coin;
 import com.servlet.entity.Product;
 import com.servlet.exceptions.ChangeAvailableException;
@@ -10,8 +11,7 @@ import com.servlet.exceptions.NotEnoughMoneyException;
 import com.servlet.exceptions.NotSufficientChangeException;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MachineService {
     private Inventory<Coin> cashInventory;
@@ -62,6 +62,27 @@ public class MachineService {
         return this.productDao.getAllProducts();
     }
 
+    private List<ChangeViewModel> convertChangeToViewModelList(List<Coin> change) {
+        List<ChangeViewModel> changeViewModelList = new ArrayList<>();
+
+        for (Coin c : new HashSet<>(change)) {
+            changeViewModelList.add(new ChangeViewModel(c.toString(),
+                    String.valueOf(Collections.frequency(change, c))));
+        }
+
+        return changeViewModelList;
+    }
+
+    public void returnChangeWithoutPurchase() throws NotSufficientChangeException, ChangeAvailableException {
+        List<Coin> change = this.getChange(this.balance);
+        balance = BigDecimal.ZERO;
+
+        if (!change.isEmpty()) {
+            this.updateCashInventory(change);
+            throw new ChangeAvailableException(this.convertChangeToViewModelList(change));
+        }
+    }
+
     public void makePurchase(int productNumber) throws NoProductException, NotEnoughMoneyException, NotSufficientChangeException, ChangeAvailableException {
         Product product = this.productDao.getProductById(productNumber);
         if (product == null) {
@@ -82,41 +103,40 @@ public class MachineService {
 
             if (!change.isEmpty()) {
                 this.updateCashInventory(change);
-                throw new ChangeAvailableException(change);
+                throw new ChangeAvailableException(this.convertChangeToViewModelList(change));
             }
         }
     }
 
     private List<Coin> getChange(BigDecimal amount) throws NotSufficientChangeException {
         List<Coin> changes = new ArrayList<>();
+        BigDecimal localBalance = new BigDecimal(amount.toString());
 
-        if (amount.signum() != 0) {
-            while (amount.signum() > 1) {
-                if (amount.compareTo(Coin.DOLLAR.getDenomination()) >= 0
+        if (localBalance.signum() != 0) {
+            while (localBalance.signum() == 1) {
+                if (localBalance.compareTo(Coin.DOLLAR.getDenomination()) >= 0
                         && cashInventory.hasItem(Coin.DOLLAR)) {
                     changes.add(Coin.DOLLAR);
-                    amount.subtract(Coin.DOLLAR.getDenomination());
-                } else if (amount.compareTo(Coin.NICKEL.getDenomination()) >= 0
+                    localBalance = localBalance.subtract(Coin.DOLLAR.getDenomination());
+                } else if (localBalance.compareTo(Coin.NICKEL.getDenomination()) >= 0
                         && cashInventory.hasItem(Coin.NICKEL)) {
                     changes.add(Coin.NICKEL);
-                    amount.subtract(Coin.NICKEL.getDenomination());
+                    localBalance = localBalance.subtract(Coin.NICKEL.getDenomination());
 
-                } else if (amount.compareTo(Coin.QUARTER.getDenomination()) >= 0
+                } else if (localBalance.compareTo(Coin.QUARTER.getDenomination()) >= 0
                         && cashInventory.hasItem(Coin.QUARTER)) {
                     changes.add(Coin.QUARTER);
-                    amount.subtract(Coin.QUARTER.getDenomination());
+                    localBalance = localBalance.subtract(Coin.QUARTER.getDenomination());
 
-                } else if (amount.compareTo(Coin.DIME.getDenomination()) >= 0
+                } else if (localBalance.compareTo(Coin.DIME.getDenomination()) >= 0
                         && cashInventory.hasItem(Coin.DIME)) {
                     changes.add(Coin.DIME);
-                    amount.subtract(Coin.DIME.getDenomination());
+                    localBalance = localBalance.subtract(Coin.DIME.getDenomination());
                 } else {
                     throw new NotSufficientChangeException();
                 }
             }
         }
-
-        //TODO: fix getChangeMethod
 
         return changes;
     }

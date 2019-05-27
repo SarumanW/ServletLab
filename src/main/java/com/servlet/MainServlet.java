@@ -5,9 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.servlet.entity.ChangeViewModel;
 import com.servlet.entity.Product;
 import com.servlet.machinestate.MachineContext;
-import org.apache.commons.lang3.EnumUtils;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,7 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet("/machine")
 public class MainServlet extends HttpServlet {
@@ -36,7 +37,7 @@ public class MainServlet extends HttpServlet {
 
         String change = req.getParameter("param");
 
-        if(change != null) {
+        if (change != null) {
             Type listType = new TypeToken<List<ChangeViewModel>>() {}.getType();
             Object changeViewModelList = gson.fromJson(change, listType);
 
@@ -56,7 +57,7 @@ public class MainServlet extends HttpServlet {
             response.setContentType("text/json");
             response.setCharacterEncoding("UTF-8");
 
-            if(productNumber == null || productNumber.isEmpty()) {
+            if (productNumber == null || productNumber.isEmpty()) {
                 responseObject = new HashMap<>();
                 responseObject.put("success", false);
                 responseObject.put("message", "Product number is empty!");
@@ -66,18 +67,17 @@ public class MainServlet extends HttpServlet {
 
             responseObject = this.machineContext.dispenseProduct(Integer.valueOf(productNumber));
 
-            List<ChangeViewModel> change = new ArrayList<>();
-            change.add(new ChangeViewModel("dollar", "0.5"));
-            responseObject.put("change", change);
-
             response.getWriter().write(this.gson.toJson(responseObject));
-
         } else if (request.getParameterMap().containsKey("nominal")) {
             String nominal = request.getParameter("nominal");
             String amount = this.machineContext.insertMoney(nominal);
 
             response.setContentType("text/plain");
             response.getWriter().write(amount);
+        } else if (request.getParameterMap().containsKey("reset")) {
+            HashMap<String, Object> responseObject = this.machineContext.reset();
+
+            response.getWriter().write(this.gson.toJson(responseObject));
         }
     }
 

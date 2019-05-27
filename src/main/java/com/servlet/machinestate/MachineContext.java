@@ -5,6 +5,7 @@ import com.servlet.service.MachineService;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MachineContext implements MachineState {
     private MachineState state;
@@ -44,6 +45,19 @@ public class MachineContext implements MachineState {
         }
 
         return response;
+    }
+
+    @Override
+    public HashMap<String, Object> reset() {
+        HashMap<String, Object> response;
+
+        response = this.state.reset();
+
+        if(this.state instanceof  HasMoneyState) {
+            this.state = noMoneyState;
+        }
+
+        return  response;
     }
 
     public static List<Product> getListOfProducts() {
