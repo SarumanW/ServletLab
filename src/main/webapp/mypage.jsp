@@ -9,6 +9,16 @@
     <script src="js/script.js" type="text/javascript"></script>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <script src="js/bootstrap.min.js"></script>
+
+    <style>
+        .dot {
+            height: 25px;
+            width: 25px;
+            background-color: #b21f2d;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
 <div class="container pt-5">
@@ -23,6 +33,7 @@
                         <td>Name</td>
                         <td>Quantity</td>
                         <td>Price</td>
+                        <td></td>
                     </tr>
                     </thead>
                     <c:forEach var="product" items="${products}">
@@ -31,6 +42,9 @@
                             <td>${product.name}</td>
                             <td>${product.quantity}</td>
                             <td>${product.price}</td>
+                            <td><c:if test="${product.quantity == 0}">
+                                <span class="dot"></span>
+                            </c:if></td>
                         </tr>
                     </c:forEach>
                 </table>

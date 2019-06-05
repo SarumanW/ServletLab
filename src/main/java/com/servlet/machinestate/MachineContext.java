@@ -39,7 +39,7 @@ public class MachineContext implements MachineState {
 
         response = this.state.dispenseProduct(productNumber);
 
-        if (this.state instanceof HasMoneyState) {
+        if (response.get("success") == Boolean.TRUE && this.state instanceof HasMoneyState) {
             this.state = noMoneyState;
         }
 

@@ -31,7 +31,8 @@ public class MongoProductDao implements ProductDao {
 
     @Override
     public void updateProductQuantity(int productNumber, int quantity) {
-        this.products.updateOne(eq("number", productNumber), new Document("$set", new Document("quantity", (double) quantity)));
+        this.products.updateOne(eq("number", productNumber),
+                new Document("$set", new Document("quantity", (double) quantity)));
     }
 
     @Override

@@ -10,7 +10,7 @@ $(document).ready(function () {
             success: function (amount) {
                 var balanceInput = $('#balance');
                 var currentBalance = $(balanceInput).val();
-                $(balanceInput).val(+currentBalance + +amount);
+                $(balanceInput).val((+currentBalance + +amount).toFixed(1));
             }
         });
     });
@@ -29,9 +29,11 @@ $(document).ready(function () {
                     $(message).text(response.message);
                     $(message).removeClass('d-none');
                     $(message).show();
-                } else {
+                } else if (response.change !== undefined) {
                     var param = JSON.stringify(response.change);
                     window.location = "http://localhost:8082/machine?param=" + encodeURIComponent(param);
+                } else {
+                    window.location = "http://localhost:8082/machine";
                 }
             }
         });
@@ -50,9 +52,11 @@ $(document).ready(function () {
                 reset: true
             },
             success: function (response) {
-                if(response.change !== undefined) {
+                if (response.change !== undefined) {
                     var param = JSON.stringify(response.change);
                     window.location = "http://localhost:8082/machine?param=" + encodeURIComponent(param);
+                } else {
+                    window.location = "http://localhost:8082/machine";
                 }
             }
         });
